@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Transactions;
 using ExpenseTracker.Enums;
 using ExpenseTracker.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
 
 public class TransactionConfiguration : IEntityTypeConfiguration<Transaction>
 {
@@ -25,7 +25,7 @@ public class TransactionConfiguration : IEntityTypeConfiguration<Transaction>
                .HasDefaultValue(TransactionType.Expense);
 
         builder.Property(t => t.Date)
-               .HasDefaultValueSql("GETDATE()");
+               .HasDefaultValueSql("NOW()");
 
         builder.Property(t => t.Note)
                .HasMaxLength(500);

@@ -4,24 +4,25 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Transactions;
 
+
 public class TransactionRepository : ITransactionRepository
 {
-	private readonly ExpenseDbContext _context;
+    private readonly ExpenseDbContext _context;
+
     public TransactionRepository(ExpenseDbContext context)
     {
         _context = context;
     }
-
     public async Task AddAsync(Transaction transaction)
     {
         await _context.Transactions.AddAsync(transaction);
-        await _context.SaveChanges();
+        await _context.SaveChangesAsync();
     }
 
     public async Task DeleteAsync(Guid id)
     {
-        var transaction = await GetByIdAsync(id);
-        if (transaction != null) 
+        var transaction = await _context.Transactions.FindAsync(id);
+        if (transaction != null)
         {
             _context.Transactions.Remove(transaction);
             await _context.SaveChangesAsync();
@@ -33,8 +34,13 @@ public class TransactionRepository : ITransactionRepository
         return await _context.Transactions.ToListAsync();
     }
 
-    public async Task<Transaction> GetByIdAsync(Guid id)
+    public IQueryable<Transaction> GetAllQueryable()
     {
+        return _context.Transactions.AsQueryable();
+    }
+
+    public async Task<Transaction> GetByIdAsync(Guid id)
+    { 
         return await _context.Transactions.FindAsync(id);
     }
 

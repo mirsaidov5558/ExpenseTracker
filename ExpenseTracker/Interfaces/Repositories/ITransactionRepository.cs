@@ -9,5 +9,6 @@ namespace ExpenseTracker.Interfaces.Repositories
         Task AddAsync (Transaction transaction);
         Task UpdateAsync (Transaction transaction);
         Task DeleteAsync (Guid id);
+        IQueryable<Transaction> GetAllQueryable();
     }
 }
