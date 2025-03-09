@@ -1,8 +1,13 @@
 ﻿using ExpenseTracker.DTOs.TransactionDtos;
+using ExpenseTracker.Exception;
 using ExpenseTracker.Interfaces.Repositories;
 using ExpenseTracker.Interfaces.Services;
+using ExpenseTracker.Models;
+using Microsoft.EntityFrameworkCore;
 using System;
-using System.Transactions;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 public class TransactionService : ITransactionService
 {
@@ -17,7 +22,7 @@ public class TransactionService : ITransactionService
     {
         var transaction = new Transaction
         {
-            Id = Guid.NewGuid(),
+            UserId = transactionDto.UserId,
             CategoryId = transactionDto.CategoryId,
             Amount = transactionDto.Amount,
             Type = transactionDto.Type,
@@ -30,71 +35,73 @@ public class TransactionService : ITransactionService
 
     public async Task DeleteAsync(Guid id)
     {
+        var transaction = await _transactionRepository.GetByIdAsync(id);
+        if (transaction == null)
+            throw new NotFoundException("Транзакция не найдена.");
+
         await _transactionRepository.DeleteAsync(id);
     }
 
-    public async Task<IEnumerable<TransactionDto>> GetAllAsync()
+    public Task<IEnumerable<TransactionDto>> GetAllAsync()
     {
-        var transactions = await _transactionRepository.GetAllAsync();
-        return transactions.Select(t => new TransactionDto
-        {
-            Id = t.Id,
-            Amount = t.Amount,
-            Date = t.Date,
-            Note = t.Note
-        });
+        throw new NotImplementedException();
     }
 
-    public async Task<IEnumerable<TransactionDto>> GetAllFilteredAsync(DateTime? startDate, DateTime? endDate, Guid? categoryId)
+    public async Task<IEnumerable<TransactionDto>> GetAllAsync(DateTime? startDate = null, DateTime? endDate = null, Guid? categoryId = null)
     {
-        var query = _transactionRepository.GetAllQueryable();
+        var transactions = await _transactionRepository.GetAllAsync(startDate, endDate, categoryId);
 
-        if (startDate.HasValue)
-            query = query.Where(t => t.Date >= startDate.Value);
-
-        if (endDate.HasValue)
-            query = query.Where(t => t.Date <= endDate.Value);
-
-        if (categoryId.HasValue)
-            query = query.Where(t => t.CategoryId == categoryId.Value);
-
-        var transactions = await query.ToListAsync();
-        return transactions.Select(t => new TransactionDto
+        // Преобразование модели в DTO
+        var transactionDtos = new List<TransactionDto>();
+        foreach (var transaction in transactions)
         {
-            Id = t.Id,
-            Amount = t.Amount,
-            Date = t.Date,
-            Note = t.Note
-        });
+            transactionDtos.Add(new TransactionDto
+            {
+                Id = transaction.Id,
+                UserId = transaction.UserId,
+                CategoryId = transaction.CategoryId,
+                Amount = transaction.Amount,
+                Type = transaction.Type,
+                Date = transaction.Date,
+                Note = transaction.Note
+            });
+        }
+
+        return transactionDtos;
     }
+
+    
 
     public async Task<TransactionDto> GetByIdAsync(Guid id)
     {
         var transaction = await _transactionRepository.GetByIdAsync(id);
+
         if (transaction == null)
-            return null;
+            throw new KeyNotFoundException("Транзакция не найдена.");
 
         return new TransactionDto
         {
             Id = transaction.Id,
+            UserId = transaction.UserId,
+            CategoryId = transaction.CategoryId,
             Amount = transaction.Amount,
+            Type = transaction.Type,
             Date = transaction.Date,
             Note = transaction.Note
         };
     }
 
-    public async Task UpdateAsync(Guid id, CreateTransactionDto transactionDto)
+    public async Task UpdateAsync(Guid id, UpdateTransactionDto transactionDto)
     {
-        var transaction = new Transaction
-        {
-            Id = Guid.NewGuid(),
-            CategoryId = transactionDto.CategoryId,
-            Amount = transactionDto.Amount,
-            Type = transactionDto.Type,
-            Date = transactionDto.Date,
-            Note = transactionDto.Note
-        };
+        var transaction = await _transactionRepository.GetByIdAsync(id);
+        if (transaction == null)
+            throw new NotFoundException("Транзакция не найдена.");
 
-        await _transactionRepository.AddAsync(transaction);
+        transaction.CategoryId = transactionDto.CategoryId;
+        transaction.Amount = transactionDto.Amount;
+        transaction.Type = transactionDto.Type;
+        transaction.Note = transactionDto.Note;
+
+        await _transactionRepository.UpdateAsync(transaction);
     }
 }

@@ -1,52 +1,65 @@
 ﻿using ExpenseTracker.Context;
 using ExpenseTracker.Interfaces.Repositories;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Transactions;
+using ModelsTransaction = ExpenseTracker.Models.Transaction;
 
 
-public class TransactionRepository : ITransactionRepository
+namespace ExpenseTracker.Repositories
 {
-    private readonly ExpenseDbContext _context;
-
-    public TransactionRepository(ExpenseDbContext context)
+    public class TransactionRepository : ITransactionRepository
     {
-        _context = context;
-    }
-    public async Task AddAsync(Transaction transaction)
-    {
-        await _context.Transactions.AddAsync(transaction);
-        await _context.SaveChangesAsync();
-    }
-
-    public async Task DeleteAsync(Guid id)
-    {
-        var transaction = await _context.Transactions.FindAsync(id);
-        if (transaction != null)
+        private readonly ExpenseDbContext _context;
+        public TransactionRepository(ExpenseDbContext context)
         {
-            _context.Transactions.Remove(transaction);
+            _context = context;
+        }
+
+        public async Task AddAsync(ModelsTransaction transaction)
+        {
+            await _context.Transactions.AddAsync(transaction);
             await _context.SaveChangesAsync();
         }
-    }
 
-    public async Task<IEnumerable<Transaction>> GetAllAsync()
-    {
-        return await _context.Transactions.ToListAsync();
-    }
+        public async Task DeleteAsync(Guid id)
+        {
+            var transaction = await _context.Transactions.FindAsync(id);
+            if (transaction != null)
+            {
+                _context.Transactions.Remove(transaction);
+                await _context.SaveChangesAsync();
+            }
+        }
 
-    public IQueryable<Transaction> GetAllQueryable()
-    {
-        return _context.Transactions.AsQueryable();
-    }
+        public async Task<IEnumerable<ModelsTransaction>> GetAllAsync(DateTime? startDate = null, DateTime? endDate = null, Guid? categoryId = null)
+        {
+            var query = _context.Transactions.AsQueryable();
 
-    public async Task<Transaction> GetByIdAsync(Guid id)
-    { 
-        return await _context.Transactions.FindAsync(id);
-    }
+            if (startDate.HasValue)
+                query = query.Where(t => t.Date >= startDate.Value);
 
-    public async Task UpdateAsync(Transaction transaction)
-    {
-        _context.Transactions.Update(transaction);
-        await _context.SaveChangesAsync();
+            if (endDate.HasValue)
+                query = query.Where(t => t.Date <= endDate.Value);
+
+            if (categoryId.HasValue)
+            {                
+                var categoryIdInt = Convert.ToInt32(categoryId.Value);
+
+                query = query.Where(t => t.CategoryId == categoryIdInt); 
+            }
+
+            return await query.ToListAsync();
+        }
+
+        public async Task<ModelsTransaction> GetByIdAsync(Guid id)
+        {
+            return await _context.Transactions
+                .FirstOrDefaultAsync(t => t.Id == id);
+        }
+
+        public async Task UpdateAsync(ModelsTransaction transaction)
+        {
+            _context.Transactions.Update(transaction);
+            await _context.SaveChangesAsync();
+        }
     }
 }
