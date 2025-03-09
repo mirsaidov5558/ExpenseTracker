@@ -18,6 +18,12 @@ namespace ExpenseTracker.Context
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<Transaction>()
+            .HasOne(t => t.Category)
+            .WithMany()
+            .HasForeignKey(t => t.CategoryId)
+            .HasPrincipalKey(c => c.Id);
             modelBuilder.ApplyConfiguration(new UserConfiguration());
             modelBuilder.ApplyConfiguration(new CategoryConfiguration());
             modelBuilder.ApplyConfiguration(new TransactionConfiguration());
