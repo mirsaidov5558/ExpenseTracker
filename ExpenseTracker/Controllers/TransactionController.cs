@@ -17,44 +17,59 @@ namespace ExpenseTracker.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<TransactionDto>>> GetAll(
-            [FromQuery] DateTime? startDate,
-            [FromQuery] DateTime? endDate,
-            [FromQuery] Guid? categoryId)
+        public async Task<ActionResult<IEnumerable<TransactionDto>>> GetAllAsync([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate, [FromQuery] Guid? categoryId)
         {
-            var transactions = await _transactionService.GetAllFilteredAsync(startDate, endDate, categoryId);
+            var transactions = await _transactionService.GetAllAsync(startDate, endDate, categoryId);
             return Ok(transactions);
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<TransactionDto>> GetById(Guid id)
+        public async Task<ActionResult<TransactionDto>> GetByIdAsync(Guid id)
         {
-            var transaction = await _transactionService.GetByIdAsync(id);
-            if (transaction == null)
-                return NotFound("Транзакция не найдена");
-
-            return Ok(transaction);
+            try
+            {
+                var transaction = await _transactionService.GetByIdAsync(id);
+                return Ok(transaction);
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound("Транзакция не найдена.");
+            }
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CreateTransactionDto dto)
+        public async Task<ActionResult> AddAsync([FromBody] CreateTransactionDto transactionDto)
         {
-            await _transactionService.AddAsync(dto);
-            return Ok("Транзакция создана");
+            await _transactionService.AddAsync(transactionDto);
+            return CreatedAtAction(nameof(GetByIdAsync), new { id = transactionDto.UserId }, transactionDto);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(Guid id, [FromBody] CreateTransactionDto dto)
+        public async Task<ActionResult> UpdateAsync(Guid id, [FromBody] UpdateTransactionDto transactionDto)
         {
-            await _transactionService.UpdateAsync(id, dto);
-            return Ok("Транзакция обновлена");
+            try
+            {
+                await _transactionService.UpdateAsync(id, transactionDto);
+                return NoContent();
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound("Транзакция не найдена.");
+            }
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(Guid id)
+        public async Task<ActionResult> DeleteAsync(Guid id)
         {
-            await _transactionService.DeleteAsync(id);
-            return Ok("Транзакция удалена");
+            try
+            {
+                await _transactionService.DeleteAsync(id);
+                return NoContent();
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound("Транзакция не найдена.");
+            }
         }
     }
 }
