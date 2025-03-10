@@ -19,7 +19,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
                .HasMaxLength(255);
 
         builder.Property(u => u.CreatedAt)
-               .HasDefaultValueSql("GETDATE()");
+               .HasDefaultValueSql("NOW()");
 
         builder.HasMany(u => u.Categories)
                .WithOne(c => c.User)
@@ -30,5 +30,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
                .WithOne(t => t.User)
                .HasForeignKey(t => t.UserId)
                .OnDelete(DeleteBehavior.Cascade);
+
+
     }
 }

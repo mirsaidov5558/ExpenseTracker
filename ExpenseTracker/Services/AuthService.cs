@@ -38,6 +38,7 @@ namespace ExpenseTracker.Services
                 Email = registerDto.Email,
                 FirstName = registerDto.FirstName,
                 LastName = registerDto.LastName,
+                CreatedAt = DateTime.UtcNow,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(registerDto.Password),
                 Role = "User" // Пока фиксированная роль
             };
