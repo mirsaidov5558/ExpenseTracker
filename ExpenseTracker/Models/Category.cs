@@ -6,7 +6,7 @@ namespace ExpenseTracker.Models
     {
         public Guid Id { get; set; } = Guid.NewGuid();
         public string Name { get; set; }
-        public int UserId { get; set; }
+        public Guid UserId { get; set; }
         public TransactionType Type { get; set; } = TransactionType.Expense;
 
         public User User { get; set; }

@@ -29,9 +29,9 @@ public class CategoryRepository : ICategoryRepository
         }
     }
 
-    public async Task<IEnumerable<Category>> GetAllAsync()
+    public async Task<IEnumerable<Category>> GetAllAsync(Guid userId)
     {
-        return await _context.Categories.ToListAsync();
+        return await _context.Categories.Where(x => x.UserId == userId).ToListAsync();
     }
 
     public async Task<Category> GetByIdAsync(Guid id)

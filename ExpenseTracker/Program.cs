@@ -52,13 +52,12 @@ builder.Services.AddControllers();
 
 // DB
 builder.Services.AddDbContext<ExpenseDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("ProductConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddAuthorization();
-builder.Services.AddControllers();
 builder.Services.AddScoped<JwtService>();
 
 var app = builder.Build();
@@ -74,7 +73,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

@@ -1,8 +1,7 @@
 ﻿using ExpenseTracker.Context;
 using ExpenseTracker.Interfaces.Repositories;
 using Microsoft.EntityFrameworkCore;
-using ModelsTransaction = ExpenseTracker.Models.Transaction;
-
+using ExpenseTracker.Models;
 
 namespace ExpenseTracker.Repositories
 {
@@ -14,7 +13,7 @@ namespace ExpenseTracker.Repositories
             _context = context;
         }
 
-        public async Task AddAsync(ModelsTransaction transaction)
+        public async Task AddAsync(Transaction transaction)
         {
             await _context.Transactions.AddAsync(transaction);
             await _context.SaveChangesAsync();
@@ -30,33 +29,22 @@ namespace ExpenseTracker.Repositories
             }
         }
 
-        public async Task<IEnumerable<ModelsTransaction>> GetAllAsync(DateTime? startDate = null, DateTime? endDate = null, Guid? categoryId = null)
+        public async Task<IEnumerable<Transaction>> GetAllAsync()
         {
-            var query = _context.Transactions.AsQueryable();
-
-            if (startDate.HasValue)
-                query = query.Where(t => t.Date >= startDate.Value);
-
-            if (endDate.HasValue)
-                query = query.Where(t => t.Date <= endDate.Value);
-
-            if (categoryId.HasValue)
-            {                
-                var categoryIdInt = Convert.ToInt32(categoryId.Value);
-
-                query = query.Where(t => t.CategoryId == categoryIdInt); 
-            }
-
-            return await query.ToListAsync();
+            return await _context.Transactions.ToListAsync();
         }
 
-        public async Task<ModelsTransaction> GetByIdAsync(Guid id)
+        public IQueryable<Transaction> GetAllQueryable()
         {
-            return await _context.Transactions
-                .FirstOrDefaultAsync(t => t.Id == id);
+            return _context.Transactions.AsQueryable();
         }
 
-        public async Task UpdateAsync(ModelsTransaction transaction)
+        public async Task<Transaction> GetByIdAsync(Guid id)
+        {
+            return await _context.Transactions.FindAsync(id);
+        }
+
+        public async Task UpdateAsync(Transaction transaction)
         {
             _context.Transactions.Update(transaction);
             await _context.SaveChangesAsync();

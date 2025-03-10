@@ -3,6 +3,7 @@ using ExpenseTracker.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace ExpenseTracker.Controllers
 {
@@ -13,6 +14,10 @@ namespace ExpenseTracker.Controllers
     {
         private readonly ICategoryService _categoryService;
 
+        public Guid UserId => !User.Identity.IsAuthenticated
+            ? Guid.Empty
+            : Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+
         public CategoriesController(ICategoryService categoryService)
         {
             _categoryService = categoryService;
@@ -22,7 +27,7 @@ namespace ExpenseTracker.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<CategoryDto>>> GetAll()
         {
-            var categories = await _categoryService.GetAllAsync();
+            var categories = await _categoryService.GetAllAsync(UserId);
             return Ok(categories);
         }
 
@@ -47,7 +52,7 @@ namespace ExpenseTracker.Controllers
                 return BadRequest("Invalid category data.");
             }
 
-            await _categoryService.AddAsync(categoryDto);
+            await _categoryService.AddAsync(categoryDto, UserId);
             return CreatedAtAction(nameof(GetById), new { id = categoryDto.Name }, categoryDto);  // Возвращаем статус 201 с ссылкой на созданный ресурс
         }
 

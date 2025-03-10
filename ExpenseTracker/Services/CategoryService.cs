@@ -12,11 +12,13 @@ public class CategoryService : ICategoryService
     {
         _categoryRepository = categoryRepository;
     }
-    public async Task AddAsync(CreateCategoryDto categoryDto)
+    public async Task AddAsync(CreateCategoryDto categoryDto, Guid userId)
     {
         var category = new Category
         {
             Name = categoryDto.Name,
+            UserId = userId,
+            Type = categoryDto.Type
         };
         await _categoryRepository.AddAsync(category);
     }
@@ -26,9 +28,9 @@ public class CategoryService : ICategoryService
         await _categoryRepository.DeleteAsync(id);
     }
 
-    public async Task<IEnumerable<CategoryDto>> GetAllAsync()
+    public async Task<IEnumerable<CategoryDto>> GetAllAsync(Guid userId)
     {
-        var categories = await _categoryRepository.GetAllAsync();
+        var categories = await _categoryRepository.GetAllAsync(userId);
         var categoryDtos = new List<CategoryDto>();
         foreach (var categoryDto in categories)
         {
