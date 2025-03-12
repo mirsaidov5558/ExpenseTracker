@@ -29,14 +29,16 @@ namespace ExpenseTracker.Repositories
             }
         }
 
-        public async Task<IEnumerable<Transaction>> GetAllAsync()
+        public async Task<IEnumerable<Transaction>> GetAllAsync(Guid userId)
         {
-            return await _context.Transactions.ToListAsync();
+            return await _context.Transactions.Where(x => x.UserId == userId).ToListAsync();
         }
 
-        public IQueryable<Transaction> GetAllQueryable()
+        public IQueryable<Transaction> GetAllQueryable(Guid userId)
         {
-            return _context.Transactions.AsQueryable();
+            return _context.Transactions
+                   .Where(t => t.UserId == userId)
+                   .AsQueryable();
         }
 
         public async Task<Transaction> GetByIdAsync(Guid id)
