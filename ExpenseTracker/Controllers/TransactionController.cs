@@ -1,5 +1,6 @@
 ﻿using ExpenseTracker.DTOs.TransactionDtos;
 using ExpenseTracker.Interfaces.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -8,6 +9,7 @@ namespace ExpenseTracker.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class TransactionController : ControllerBase
     {
         private readonly ITransactionService _transactionService;
@@ -22,11 +24,16 @@ namespace ExpenseTracker.Controllers
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TransactionDto>>> GetAll(
-            [FromQuery] DateTime? startDate,
-            [FromQuery] DateTime? endDate,
-            [FromQuery] Guid? categoryId)
+    [FromQuery] DateTime? startDate,
+    [FromQuery] DateTime? endDate,
+    [FromQuery] Guid? categoryId)
         {
-            var transactions = await _transactionService.GetAllFilteredAsync(startDate, endDate, categoryId);
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var parsedUserId))
+                return Unauthorized();
+
+            var transactions = await _transactionService.GetAllFilteredAsync(parsedUserId, startDate, endDate, categoryId);
             return Ok(transactions);
         }
 

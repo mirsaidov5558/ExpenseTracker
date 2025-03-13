@@ -38,9 +38,11 @@ public class TransactionService : ITransactionService
         await _transactionRepository.DeleteAsync(id);
     }
 
-    public async Task<IEnumerable<TransactionDto>> GetAllAsync()
+    public async Task<IEnumerable<TransactionDto>> GetAllAsync(Guid userId)
     {
-        var transactions = await _transactionRepository.GetAllAsync();
+        var transactions = await _transactionRepository.GetAllQueryable(userId)
+                                                   .Where(t => t.UserId == userId)
+                                                   .ToListAsync();
         return transactions.Select(t => new TransactionDto
         {
             Id = t.Id,
@@ -50,9 +52,10 @@ public class TransactionService : ITransactionService
         });
     }
 
-    public async Task<IEnumerable<TransactionDto>> GetAllFilteredAsync(DateTime? startDate, DateTime? endDate, Guid? categoryId)
+    public async Task<IEnumerable<TransactionDto>> GetAllFilteredAsync(Guid userId, DateTime? startDate, DateTime? endDate, Guid? categoryId)
     {
-        var query = _transactionRepository.GetAllQueryable();
+        var query = _transactionRepository.GetAllQueryable(userId)
+                                      .Where(t => t.UserId == userId);
 
         if (startDate.HasValue)
             query = query.Where(t => t.Date >= startDate.Value);
