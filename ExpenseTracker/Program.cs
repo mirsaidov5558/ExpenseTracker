@@ -61,10 +61,11 @@ builder.Services.AddSwaggerGen(options =>
 {
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Description = "¬ведите токен в формате **Bearer {ваш токен}**",
+        Description = "¬ведите токен в формате Bearer {ваш токен}",
         Name = "Authorization",
         In = ParameterLocation.Header,
-        Type = SecuritySchemeType.ApiKey
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer"
     });
 
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -83,7 +84,6 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 builder.Services.AddAuthorization();
-builder.Services.AddScoped<JwtService>();
 
 var app = builder.Build();
 
@@ -97,10 +97,10 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+app.UseRouting();
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();

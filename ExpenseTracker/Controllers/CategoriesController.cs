@@ -14,9 +14,9 @@ namespace ExpenseTracker.Controllers
     {
         private readonly ICategoryService _categoryService;
 
-        public Guid UserId => !User.Identity.IsAuthenticated
-            ? Guid.Empty
-            : Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+        public Guid UserId => User.Identity.IsAuthenticated
+        ? Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value)
+        : Guid.Empty;
 
         public CategoriesController(ICategoryService categoryService)
         {
