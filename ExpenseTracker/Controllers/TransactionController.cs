@@ -13,9 +13,9 @@ namespace ExpenseTracker.Controllers
     public class TransactionController : ControllerBase
     {
         private readonly ITransactionService _transactionService;
-        public Guid UserId => !User.Identity.IsAuthenticated
-            ? Guid.Empty
-            : Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+        public Guid UserId => User.Identity.IsAuthenticated
+        ? Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value)
+        : Guid.Empty;
 
         public TransactionController(ITransactionService transactionService)
         {
